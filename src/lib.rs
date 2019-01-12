@@ -1,3 +1,31 @@
+//! Derive `Serialize` and `Deserialize` that delegates to the underlying repr
+//! of a C-like enum.
+//!
+//! # Examples
+//!
+//! ```
+//! use serde_repr::{Serialize_repr, Deserialize_repr};
+//!
+//! #[derive(Serialize_repr, Deserialize_repr, PartialEq, Debug)]
+//! #[repr(u8)]
+//! enum SmallPrime {
+//!     Two = 2,
+//!     Three = 3,
+//!     Five = 5,
+//!     Seven = 7,
+//! }
+//!
+//! fn main() -> serde_json::Result<()> {
+//!     let j = serde_json::to_string(&SmallPrime::Seven)?;
+//!     assert_eq!(j, "7");
+//!
+//!     let p: SmallPrime = serde_json::from_str("2")?;
+//!     assert_eq!(p, SmallPrime::Two);
+//!
+//!     Ok(())
+//! }
+//! ```
+
 #![recursion_limit = "128"]
 
 extern crate proc_macro;
