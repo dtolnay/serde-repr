@@ -10,6 +10,7 @@ This crate provides a derive macro to derive Serde's `Serialize` and
 enum.
 
 ```toml
+[dependencies]
 serde = "1.0"
 serde_repr = "0.1"
 ```
