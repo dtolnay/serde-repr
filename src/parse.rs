@@ -37,10 +37,9 @@ impl Parse for Input {
                     variant.ident.span(),
                     "explicit discriminant is required",
                 )),
-                (Fields::Named(_), _) | (Fields::Unnamed(_), _) => Err(Error::new(
-                    variant.ident.span(),
-                    "must be a unit variant",
-                )),
+                (Fields::Named(_), _) | (Fields::Unnamed(_), _) => {
+                    Err(Error::new(variant.ident.span(), "must be a unit variant"))
+                }
             })
             .collect::<Result<Vec<Variant>>>()?;
 
