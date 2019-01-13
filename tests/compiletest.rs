@@ -1,5 +1,9 @@
 #[test]
 fn ui() {
+    if !version_check::is_nightly().unwrap() {
+        return;
+    }
+
     let mut config = compiletest::Config {
         mode: compiletest::common::Mode::Ui,
         src_base: std::path::PathBuf::from("tests/ui"),
