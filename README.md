@@ -1,7 +1,7 @@
 Serde repr derive
 =================
 
-[![Build Status](https://api.travis-ci.org/dtolnay/serde-repr.svg?branch=master)](https://travis-ci.org/dtolnay/serde-repr)
+[![Build Status](https://api.travis-ci.com/dtolnay/serde-repr.svg?branch=master)](https://travis-ci.com/dtolnay/serde-repr)
 [![Latest Version](https://img.shields.io/crates/v/serde_repr.svg)](https://crates.io/crates/serde_repr)
 [![Rust Documentation](https://img.shields.io/badge/api-rustdoc-blue.svg)](https://docs.rs/serde_repr)
 
