@@ -11,7 +11,7 @@ enum.
 
 ```toml
 serde = "1.0"
-serde_repr = "0.0"
+serde_repr = "0.1"
 ```
 
 ```rust
