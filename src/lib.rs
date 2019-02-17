@@ -76,6 +76,7 @@ pub fn derive_deserialize(input: TokenStream) -> TokenStream {
     let declare_discriminants = input.variants.iter().map(|variant| {
         let variant = &variant.ident;
         quote! {
+            #[allow(non_upper_case_globals)]
             const #variant: #repr = #ident::#variant as #repr;
         }
     });
