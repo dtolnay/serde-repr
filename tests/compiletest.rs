@@ -14,6 +14,7 @@ fn ui() {
              --extern serde_repr \
              ",
         )),
+        build_base: std::path::PathBuf::from("target/ui"),
         ..Default::default()
     };
 
