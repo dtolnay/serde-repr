@@ -1,6 +1,6 @@
 use proc_macro2::Span;
 use syn::parse::{Error, Parse, ParseStream, Parser, Result};
-use syn::{parenthesized, Data, DeriveInput, Expr, Fields, Ident};
+use syn::{parenthesized, Data, DeriveInput, Fields, Ident};
 
 pub struct Input {
     pub ident: Ident,
@@ -10,7 +10,6 @@ pub struct Input {
 
 pub struct Variant {
     pub ident: Ident,
-    pub discriminant: Expr,
 }
 
 impl Parse for Input {
@@ -28,16 +27,11 @@ impl Parse for Input {
         let variants = data
             .variants
             .into_iter()
-            .map(|variant| match (variant.fields, variant.discriminant) {
-                (Fields::Unit, Some((_, expr))) => Ok(Variant {
+            .map(|variant| match variant.fields {
+                Fields::Unit => Ok(Variant {
                     ident: variant.ident,
-                    discriminant: expr,
                 }),
-                (Fields::Unit, None) => Err(Error::new(
-                    variant.ident.span(),
-                    "explicit discriminant is required",
-                )),
-                (Fields::Named(_), _) | (Fields::Unnamed(_), _) => {
+                Fields::Named(_) | Fields::Unnamed(_) => {
                     Err(Error::new(variant.ident.span(), "must be a unit variant"))
                 }
             })

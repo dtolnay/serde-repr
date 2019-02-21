@@ -45,9 +45,13 @@ pub fn derive_serialize(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as Input);
     let ident = input.ident;
     let repr = input.repr;
-    let ident_repeat = iter::repeat(&ident);
-    let variants = input.variants.iter().map(|variant| &variant.ident);
-    let discriminants = input.variants.iter().map(|variant| &variant.discriminant);
+
+    let match_variants = input.variants.iter().map(|variant| {
+        let variant = &variant.ident;
+        quote! {
+            #ident::#variant => #ident::#variant as #repr,
+        }
+    });
 
     TokenStream::from(quote! {
         impl serde::Serialize for #ident {
@@ -56,9 +60,7 @@ pub fn derive_serialize(input: TokenStream) -> TokenStream {
                 S: serde::Serializer
             {
                 let value: #repr = match *self {
-                    #(
-                        #ident_repeat::#variants => #discriminants,
-                    )*
+                    #(#match_variants)*
                 };
                 serde::Serialize::serialize(&value, serializer)
             }
@@ -80,6 +82,7 @@ pub fn derive_deserialize(input: TokenStream) -> TokenStream {
             const #variant: #repr = #ident::#variant as #repr;
         }
     });
+
     let match_discriminants = input.variants.iter().map(|variant| {
         let variant = &variant.ident;
         quote! {
