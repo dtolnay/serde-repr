@@ -40,7 +40,7 @@ use crate::parse::Input;
 
 use std::iter;
 
-#[proc_macro_derive(Serialize_repr)]
+#[proc_macro_derive(Serialize_repr, attributes(serde))]
 pub fn derive_serialize(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as Input);
     let ident = input.ident;
@@ -68,7 +68,7 @@ pub fn derive_serialize(input: TokenStream) -> TokenStream {
     })
 }
 
-#[proc_macro_derive(Deserialize_repr)]
+#[proc_macro_derive(Deserialize_repr, attributes(serde))]
 pub fn derive_deserialize(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as Input);
     let ident = input.ident;
@@ -99,6 +99,20 @@ pub fn derive_deserialize(input: TokenStream) -> TokenStream {
         }
     };
 
+    let other_arm = match input.default_variant {
+        Some(variant) => {
+            let variant = &variant.ident;
+            quote! {
+                core::result::Result::Ok(#ident::#variant)
+            }
+        },
+        None => quote! {
+            core::result::Result::Err(serde::de::Error::custom(
+                format_args!(#error_format, other #(, discriminant::#variants)*)
+            ))
+        },
+    };
+
     TokenStream::from(quote! {
         impl<'de> serde::Deserialize<'de> for #ident {
             fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
@@ -113,9 +127,7 @@ pub fn derive_deserialize(input: TokenStream) -> TokenStream {
 
                 match <#repr as serde::Deserialize>::deserialize(deserializer)? {
                     #(#match_discriminants)*
-                    other => core::result::Result::Err(serde::de::Error::custom(
-                        format_args!(#error_format, other #(, discriminant::#variants)*)
-                    )),
+                    other => #other_arm,
                 }
             }
         }
