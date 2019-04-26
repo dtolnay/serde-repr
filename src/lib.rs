@@ -105,7 +105,7 @@ pub fn derive_deserialize(input: TokenStream) -> TokenStream {
             quote! {
                 core::result::Result::Ok(#ident::#variant)
             }
-        },
+        }
         None => quote! {
             core::result::Result::Err(serde::de::Error::custom(
                 format_args!(#error_format, other #(, discriminant::#variants)*)

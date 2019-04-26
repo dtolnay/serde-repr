@@ -22,20 +22,20 @@ pub struct VariantAttrs {
 
 fn parse_meta(attrs: &mut VariantAttrs, meta: &Meta, is_nested: bool) {
     match meta {
-        Meta::List(value) if !is_nested => for meta in &value.nested {
-            match meta {
-                NestedMeta::Meta(meta) => parse_meta(attrs, meta, true),
-                _ => { }
+        Meta::List(value) if !is_nested => {
+            for meta in &value.nested {
+                match meta {
+                    NestedMeta::Meta(meta) => parse_meta(attrs, meta, true),
+                    _ => {}
+                }
             }
         }
         Meta::Word(ref id) if id == "other" => attrs.is_default = true,
-        _ => { }
+        _ => {}
     }
 }
 fn parse_attrs(variant: &syn::Variant) -> Result<VariantAttrs> {
-    let mut attrs = VariantAttrs {
-        is_default: false,
-    };
+    let mut attrs = VariantAttrs { is_default: false };
     for attr in &variant.attrs {
         if attr.path.is_ident("serde") {
             parse_meta(&mut attrs, &attr.parse_meta()?, false);
@@ -66,7 +66,7 @@ impl Parse for Input {
                         ident: variant.ident,
                         attrs,
                     })
-                },
+                }
                 Fields::Named(_) | Fields::Unnamed(_) => {
                     Err(Error::new(variant.ident.span(), "must be a unit variant"))
                 }
@@ -100,7 +100,10 @@ impl Parse for Input {
         let mut default_variants = variants.iter().filter(|x| x.attrs.is_default);
         let default_variant = default_variants.next().map(|x| x.clone());
         if default_variants.next().is_some() {
-            return Err(Error::new(call_site, "only one variant can be #[serde(other)]"))
+            return Err(Error::new(
+                call_site,
+                "only one variant can be #[serde(other)]",
+            ));
         }
 
         Ok(Input {
