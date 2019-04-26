@@ -25,6 +25,29 @@ mod small_prime {
     }
 }
 
+mod other {
+    use super::*;
+
+    #[derive(Serialize_repr, Deserialize_repr, PartialEq, Debug)]
+    #[repr(u8)]
+    enum TestOther {
+        A,
+        B,
+        #[serde(other, rename = "useless")]
+        Other,
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let p: TestOther = serde_json::from_str("0").unwrap();
+        assert_eq!(p, TestOther::A);
+        let p: TestOther = serde_json::from_str("1").unwrap();
+        assert_eq!(p, TestOther::B);
+        let p: TestOther = serde_json::from_str("5").unwrap();
+        assert_eq!(p, TestOther::Other);
+    }
+}
+
 mod implicit_discriminant {
     use super::*;
 

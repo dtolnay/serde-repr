@@ -1,15 +1,47 @@
 use proc_macro2::Span;
 use syn::parse::{Error, Parse, ParseStream, Parser, Result};
-use syn::{parenthesized, Data, DeriveInput, Fields, Ident};
+use syn::{parenthesized, Data, DeriveInput, Fields, Ident, Meta, NestedMeta};
 
 pub struct Input {
     pub ident: Ident,
     pub repr: Ident,
     pub variants: Vec<Variant>,
+    pub default_variant: Option<Variant>,
 }
 
+#[derive(Clone)]
 pub struct Variant {
     pub ident: Ident,
+    pub attrs: VariantAttrs,
+}
+
+#[derive(Clone)]
+pub struct VariantAttrs {
+    pub is_default: bool,
+}
+
+fn parse_meta(attrs: &mut VariantAttrs, meta: &Meta, is_nested: bool) {
+    match meta {
+        Meta::List(value) if !is_nested => for meta in &value.nested {
+            match meta {
+                NestedMeta::Meta(meta) => parse_meta(attrs, meta, true),
+                _ => { }
+            }
+        }
+        Meta::Word(ref id) if id == "other" => attrs.is_default = true,
+        _ => { }
+    }
+}
+fn parse_attrs(variant: &syn::Variant) -> Result<VariantAttrs> {
+    let mut attrs = VariantAttrs {
+        is_default: false,
+    };
+    for attr in &variant.attrs {
+        if attr.path.is_ident("serde") {
+            parse_meta(&mut attrs, &attr.parse_meta()?, false);
+        }
+    }
+    Ok(attrs)
 }
 
 impl Parse for Input {
@@ -28,9 +60,13 @@ impl Parse for Input {
             .variants
             .into_iter()
             .map(|variant| match variant.fields {
-                Fields::Unit => Ok(Variant {
-                    ident: variant.ident,
-                }),
+                Fields::Unit => {
+                    let attrs = parse_attrs(&variant)?;
+                    Ok(Variant {
+                        ident: variant.ident,
+                        attrs,
+                    })
+                },
                 Fields::Named(_) | Fields::Unnamed(_) => {
                     Err(Error::new(variant.ident.span(), "must be a unit variant"))
                 }
@@ -61,10 +97,17 @@ impl Parse for Input {
         }
         let repr = repr.ok_or_else(|| Error::new(call_site, "missing #[repr(...)] attribute"))?;
 
+        let mut default_variants = variants.iter().filter(|x| x.attrs.is_default);
+        let default_variant = default_variants.next().map(|x| x.clone());
+        if default_variants.next().is_some() {
+            return Err(Error::new(call_site, "only one variant can be #[serde(other)]"))
+        }
+
         Ok(Input {
             ident: derive_input.ident,
             repr,
             variants,
+            default_variant,
         })
     }
 }
