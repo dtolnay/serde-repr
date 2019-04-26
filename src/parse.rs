@@ -96,7 +96,7 @@ impl Parse for Input {
         let repr = repr.ok_or_else(|| Error::new(call_site, "missing #[repr(...)] attribute"))?;
 
         let mut default_variants = variants.iter().filter(|x| x.attrs.is_default);
-        let default_variant = default_variants.next().map(|x| x.clone());
+        let default_variant = default_variants.next().cloned();
         if default_variants.next().is_some() {
             return Err(Error::new(
                 call_site,
