@@ -40,7 +40,7 @@ use crate::parse::Input;
 
 use std::iter;
 
-#[proc_macro_derive(Serialize_repr, attributes(serde))]
+#[proc_macro_derive(Serialize_repr)]
 pub fn derive_serialize(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as Input);
     let ident = input.ident;
