@@ -20,25 +20,23 @@ pub struct VariantAttrs {
     pub is_default: bool,
 }
 
-fn parse_meta(attrs: &mut VariantAttrs, meta: &Meta, is_nested: bool) {
-    match meta {
-        Meta::List(value) if !is_nested => {
-            for meta in &value.nested {
-                match meta {
-                    NestedMeta::Meta(meta) => parse_meta(attrs, meta, true),
-                    _ => {}
+fn parse_meta(attrs: &mut VariantAttrs, meta: &Meta) {
+    if let Meta::List(value) = meta {
+        for meta in &value.nested {
+            if let NestedMeta::Meta(Meta::Word(word)) = meta {
+                if word == "other" {
+                    attrs.is_default = true;
                 }
             }
         }
-        Meta::Word(ref id) if id == "other" => attrs.is_default = true,
-        _ => {}
     }
 }
+
 fn parse_attrs(variant: &syn::Variant) -> Result<VariantAttrs> {
     let mut attrs = VariantAttrs { is_default: false };
     for attr in &variant.attrs {
         if attr.path.is_ident("serde") {
-            parse_meta(&mut attrs, &attr.parse_meta()?, false);
+            parse_meta(&mut attrs, &attr.parse_meta()?);
         }
     }
     Ok(attrs)
