@@ -18,7 +18,7 @@ quote = "0.6"
 syn = "0.15"
 
 [dev-dependencies]
-select-rustc = "0.1"
+rustversion = "0.1"
 serde = "1.0"
 serde_json = "1.0"
 trybuild = "1.0"
