@@ -1,6 +1,6 @@
-use serde_repr::Deserialize_repr;
+use serde_repr::DeserializeRepr;
 
-#[derive(Deserialize_repr)]
+#[derive(DeserializeRepr)]
 #[repr(u8)]
 enum MultipleOthers {
     #[serde(other)]

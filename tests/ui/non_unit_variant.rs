@@ -1,6 +1,6 @@
-use serde_repr::Serialize_repr;
+use serde_repr::SerializeRepr;
 
-#[derive(Serialize_repr)]
+#[derive(SerializeRepr)]
 #[repr(u8)]
 enum SmallPrime {
     Two(u8),

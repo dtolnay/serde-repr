@@ -4,9 +4,9 @@
 //! # Examples
 //!
 //! ```
-//! use serde_repr::{Serialize_repr, Deserialize_repr};
+//! use serde_repr::{SerializeRepr, DeserializeRepr};
 //!
-//! #[derive(Serialize_repr, Deserialize_repr, PartialEq, Debug)]
+//! #[derive(SerializeRepr, DeserializeRepr, PartialEq, Debug)]
 //! #[repr(u8)]
 //! enum SmallPrime {
 //!     Two = 2,
@@ -40,7 +40,7 @@ use crate::parse::Input;
 
 use std::iter;
 
-#[proc_macro_derive(Serialize_repr)]
+#[proc_macro_derive(SerializeRepr)]
 pub fn derive_serialize(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as Input);
     let ident = input.ident;
@@ -68,7 +68,7 @@ pub fn derive_serialize(input: TokenStream) -> TokenStream {
     })
 }
 
-#[proc_macro_derive(Deserialize_repr, attributes(serde))]
+#[proc_macro_derive(DeserializeRepr, attributes(serde))]
 pub fn derive_deserialize(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as Input);
     let ident = input.ident;
