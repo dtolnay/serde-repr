@@ -1,3 +1,4 @@
+#![feature(arbitrary_enum_discriminant)]
 //! [![github]](https://github.com/dtolnay/serde-repr)&ensp;[![crates-io]](https://crates.io/crates/serde_repr)&ensp;[![docs-rs]](https://docs.rs/serde_repr)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
@@ -52,10 +53,46 @@ pub fn derive_serialize(input: TokenStream) -> TokenStream {
     let ident = input.ident;
     let repr = input.repr;
 
+    let mut current_discriminant = quote! { 0 };
     let match_variants = input.variants.iter().map(|variant| {
+        let discriminant = &variant.discriminant;
+        let fields = &variant.fields;
         let variant = &variant.ident;
-        quote! {
-            #ident::#variant => #ident::#variant as #repr,
+
+        match discriminant {
+            Some(expr) => {
+                current_discriminant = quote! { #expr };
+
+                match fields {
+                    syn::Fields::Unnamed(unnamed) => quote! {
+                        #ident::#variant(#unnamed) => (#expr) as #repr,
+                    },
+                    syn::Fields::Named(named) => quote! {
+                        #ident::#variant { #named } => (#expr) as #repr,
+                    },
+                    syn::Fields::Unit => quote! {
+                        #ident::#variant => (#expr) as #repr,
+                    },
+                }
+            }
+            None => {
+                let quoted = match fields {
+                    syn::Fields::Unnamed(unnamed) => quote! {
+                        #ident::#variant(#unnamed) => (#current_discriminant) as #repr,
+                    },
+                    syn::Fields::Named(named) => quote! {
+                        #ident::#variant { #named } => (#current_discriminant) as #repr,
+                    },
+                    syn::Fields::Unit => quote! {
+                        #ident::#variant => (#current_discriminant) as #repr,
+                    },
+                };
+
+
+                current_discriminant = quote! { #current_discriminant + 1 };
+
+                quoted
+            }
         }
     });
 

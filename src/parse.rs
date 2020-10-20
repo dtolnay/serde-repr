@@ -13,6 +13,8 @@ pub struct Input {
 pub struct Variant {
     pub ident: Ident,
     pub attrs: VariantAttrs,
+    pub fields: Fields,
+    pub discriminant: Option<syn::Expr>,
 }
 
 #[derive(Clone)]
@@ -57,17 +59,15 @@ impl Parse for Input {
         let variants = data
             .variants
             .into_iter()
-            .map(|variant| match variant.fields {
-                Fields::Unit => {
-                    let attrs = parse_attrs(&variant)?;
-                    Ok(Variant {
-                        ident: variant.ident,
-                        attrs,
-                    })
-                }
-                Fields::Named(_) | Fields::Unnamed(_) => {
-                    Err(Error::new(variant.ident.span(), "must be a unit variant"))
-                }
+            .map(|variant| {
+                let attrs = parse_attrs(&variant)?;
+
+                Ok(Variant {
+                    ident: variant.ident,
+                    attrs,
+                    fields: variant.fields,
+                    discriminant: variant.discriminant.map(|(_, expr)| expr),
+                })
             })
             .collect::<Result<Vec<Variant>>>()?;
 

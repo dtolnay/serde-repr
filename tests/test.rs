@@ -72,3 +72,29 @@ mod implicit_discriminant {
         assert_eq!(p, ImplicitDiscriminant::Two);
     }
 }
+
+
+mod arbitrary_discriminant {
+    use super::*;
+
+    #[derive(Serialize_repr, PartialEq, Debug)]
+    #[repr(u8)]
+    enum ImplicitDiscriminant {
+        Zero(u8),
+        One(u8),
+        Two(u8),
+        Three(u8),
+    }
+
+    #[test]
+    fn test_serialize() {
+        let j = serde_json::to_string(&ImplicitDiscriminant::Three(200)).unwrap();
+        assert_eq!(j, r#"{3:200}"#);
+    }
+
+//     // #[test]
+//     // fn test_deserialize() {
+//     //     let p: ImplicitDiscriminant = serde_json::from_str(r#"{2:5}"#).unwrap();
+//     //     assert_eq!(p, ImplicitDiscriminant::Two(5));
+//     // }
+}
