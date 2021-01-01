@@ -34,6 +34,8 @@
 //! }
 //! ```
 
+#![allow(clippy::single_match_else)]
+
 extern crate proc_macro;
 
 mod parse;
