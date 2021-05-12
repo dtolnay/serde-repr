@@ -57,6 +57,7 @@ pub fn derive_serialize(input: TokenStream) -> TokenStream {
     let match_variants = input.variants.iter().map(|variant| {
         let variant = &variant.ident;
         quote! {
+            #[allow(clippy::use_self)]
             #ident::#variant => #ident::#variant as #repr,
         }
     });
@@ -94,6 +95,7 @@ pub fn derive_deserialize(input: TokenStream) -> TokenStream {
     let match_discriminants = input.variants.iter().map(|variant| {
         let variant = &variant.ident;
         quote! {
+            #[allow(clippy::use_self)]
             discriminant::#variant => core::result::Result::Ok(#ident::#variant),
         }
     });
