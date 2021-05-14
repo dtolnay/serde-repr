@@ -4,4 +4,4 @@ error: only one variant can be #[serde(other)]
 3 | #[derive(Deserialize_repr)]
   |          ^^^^^^^^^^^^^^^^
   |
-  = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)
+  = note: this error originates in the derive macro `Deserialize_repr` (in Nightly builds, run with -Z macro-backtrace for more info)
