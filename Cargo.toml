@@ -8,6 +8,7 @@ repository = "https://github.com/dtolnay/serde-repr"
 documentation = "https://docs.rs/serde_repr"
 readme = "README.md"
 edition = "2018"
+rust-version = "1.31"
 
 [lib]
 proc-macro = true
