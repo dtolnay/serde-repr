@@ -1,5 +1,5 @@
 error: there must be at least one variant
- --> $DIR/tests/ui/empty_enum.rs:3:10
+ --> tests/ui/empty_enum.rs:3:10
   |
 3 | #[derive(Serialize_repr)]
   |          ^^^^^^^^^^^^^^
