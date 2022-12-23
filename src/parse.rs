@@ -57,7 +57,7 @@ impl Parse for Input {
         let variants = data
             .variants
             .into_iter()
-            .map(|variant| match variant.fields {
+            .map(|variant| match &variant.fields {
                 Fields::Unit => {
                     let attrs = parse_attrs(&variant)?;
                     Ok(Variant {
@@ -66,7 +66,7 @@ impl Parse for Input {
                     })
                 }
                 Fields::Named(_) | Fields::Unnamed(_) => {
-                    Err(Error::new(variant.ident.span(), "must be a unit variant"))
+                    Err(Error::new(call_site, "input must be an enum of unit variants"))
                 }
             })
             .collect::<Result<Vec<Variant>>>()?;
