@@ -86,6 +86,8 @@ fn add_lifetime_bounds(mut generics: Generics) -> (Generics, Lifetime) {
             generics.params.push(GenericParam::Lifetime(LifetimeDef::new(lifetime.clone())));
             return (generics, lifetime);
         }
+
+        i += 1;
     }
 }
 
