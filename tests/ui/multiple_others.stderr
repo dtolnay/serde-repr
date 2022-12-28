@@ -1,4 +1,4 @@
-error: only one variant can be #[serde(other)]
+error: Only one variant can be marked with #[serde(other)]
  --> tests/ui/multiple_others.rs:3:10
   |
 3 | #[derive(Deserialize_repr)]

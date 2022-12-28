@@ -1,0 +1,7 @@
+error: Internally tagged enums with unnamed fields are not supported
+ --> tests/ui/internally_tagged_newtype.rs:3:10
+  |
+3 | #[derive(Serialize_repr)]
+  |          ^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the derive macro `Serialize_repr` (in Nightly builds, run with -Z macro-backtrace for more info)

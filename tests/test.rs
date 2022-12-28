@@ -79,3 +79,32 @@ mod implicit_discriminant {
         assert_eq!(p, ImplicitDiscriminant::Two);
     }
 }
+
+mod externally_tagged_complex_enum {
+    use super::*;
+
+    const SOME_CONST: u8 = 12;
+
+    #[derive(Serialize_repr, Deserialize_repr, Debug, PartialEq)]
+    #[repr(u8)]
+    enum ComplexEnum<'b, T> {
+        A { a: u8, b: u16 } = SOME_CONST,
+        B { b: T },
+        C(u8, u16, u32) = 16,
+        D(&'b str),
+        E,
+        F,
+    }
+
+    #[test]
+    fn test_serialize() {
+        let j = serde_json::to_string(&ComplexEnum::B { b: ComplexEnum::<&str>::C(1, 2, 3) }).unwrap();
+        assert_eq!(j, "{\"13\":{\"b\":{\"16\":[1,2,3]}}}");
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let p: ComplexEnum<ComplexEnum<&str>> = serde_json::from_str("{\"13\":{\"b\":{\"16\":[1,2,3]}}}").unwrap();
+        assert_eq!(p, ComplexEnum::B { b: ComplexEnum::<&str>::C(1, 2, 3) });
+    }
+}
