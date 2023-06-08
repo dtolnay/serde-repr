@@ -1,10 +1,5 @@
 error: must be a unit variant
  --> tests/ui/non_unit_variant.rs:6:5
   |
-3 | #[derive(Serialize_repr)]
-  |          -------------- in this derive macro expansion
-...
 6 |     Two(u8),
   |     ^^^
-  |
-  = note: this error originates in the derive macro `Serialize_repr` (in Nightly builds, run with -Z macro-backtrace for more info)
