@@ -1,6 +1,6 @@
 [package]
 name = "serde_repr"
-version = "0.1.12"
+version = "0.1.13"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 categories = ["encoding", "no-std", "no-std::no-alloc"]
 description = "Derive Serialize and Deserialize that delegates to the underlying repr of a C-like enum."
