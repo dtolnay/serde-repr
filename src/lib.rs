@@ -34,7 +34,7 @@
 //! }
 //! ```
 
-#![doc(html_root_url = "https://docs.rs/serde_repr/0.1.13")]
+#![doc(html_root_url = "https://docs.rs/serde_repr/0.1.14")]
 #![allow(clippy::single_match_else)]
 
 extern crate proc_macro;
