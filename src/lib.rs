@@ -124,6 +124,7 @@ pub fn derive_deserialize(input: TokenStream) -> TokenStream {
             where
                 D: serde::Deserializer<'de>,
             {
+                #[allow(non_camel_case_types)]
                 struct discriminant;
 
                 #[allow(non_upper_case_globals)]
