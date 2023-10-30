@@ -1,7 +1,5 @@
-error[E0412]: cannot find type `C` in this scope
+error: unsupported repr for serde_repr enum
  --> tests/ui/repr_c.rs:4:8
   |
-3 | #[derive(Serialize_repr)]
-  |          -------------- similarly named type parameter `S` defined here
 4 | #[repr(C)]
-  |        ^ help: a type parameter with a similar name exists: `S`
+  |        ^
