@@ -69,7 +69,7 @@ impl Parse for Input {
                     })
                 }
                 Fields::Named(_) | Fields::Unnamed(_) => {
-                    Err(Error::new(variant.ident.span(), "must be a unit variant"))
+                    Err(Error::new(variant.ident.span(), "must be a unit variant to use serde_repr derive"))
                 }
             })
             .collect::<Result<Vec<Variant>>>()?;
