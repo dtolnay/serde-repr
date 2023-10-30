@@ -1,6 +1,6 @@
-use proc_macro2::{Span, TokenTree};
+use proc_macro2::{Span, TokenStream, TokenTree};
 use syn::parse::{Error, Parse, ParseStream, Result};
-use syn::{token, Attribute, Data, DeriveInput, Expr, Fields, Ident, Meta, Token};
+use syn::{parenthesized, token, Attribute, Data, DeriveInput, Expr, Fields, Ident, Meta, Token};
 
 pub struct Input {
     pub ident: Ident,
@@ -94,6 +94,14 @@ impl Parse for Input {
                         ];
                         if RECOGNIZED.iter().any(|int| meta.path.is_ident(int)) {
                             repr = Some(meta.path.get_ident().unwrap().clone());
+                            return Ok(());
+                        }
+                        if meta.path.is_ident("align") || meta.path.is_ident("packed") {
+                            if meta.input.peek(token::Paren) {
+                                let arg;
+                                parenthesized!(arg in meta.input);
+                                let _ = arg.parse::<TokenStream>()?;
+                            }
                             return Ok(());
                         }
                         Err(meta.error("unsupported repr for serde_repr enum"))
