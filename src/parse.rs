@@ -86,10 +86,18 @@ impl Parse for Input {
         let mut repr = None;
         for attr in derive_input.attrs {
             if attr.path().is_ident("repr") {
-                if let Meta::List(_) = &attr.meta {
-                    let ty: Ident = attr.parse_args()?;
-                    repr = Some(ty);
-                    break;
+                if let Meta::List(meta) = &attr.meta {
+                    meta.parse_nested_meta(|meta| {
+                        const RECOGNIZED: &[&str] = &[
+                            "u8", "u16", "u32", "u64", "u128", "usize", "i8", "i16", "i32", "i64",
+                            "i128", "isize",
+                        ];
+                        if RECOGNIZED.iter().any(|int| meta.path.is_ident(int)) {
+                            repr = Some(meta.path.get_ident().unwrap().clone());
+                            return Ok(());
+                        }
+                        Err(meta.error("unsupported repr for serde_repr enum"))
+                    })?;
                 }
             }
         }
