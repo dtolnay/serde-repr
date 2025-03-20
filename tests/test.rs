@@ -79,3 +79,38 @@ mod implicit_discriminant {
         assert_eq!(p, ImplicitDiscriminant::Two);
     }
 }
+
+mod untagged {
+    use super::*;
+
+    #[derive(Serialize_repr, Deserialize_repr, Debug, PartialEq)]
+    #[repr(u8)]
+    enum Untagged {
+        A,
+        B = 1 + 3,
+        C = 8,
+        #[serde(untagged)]
+        Other(u8),
+    }
+
+    #[test]
+    fn test_serialize() {
+        let j = serde_json::to_string(&Untagged::C).unwrap();
+        assert_eq!(j, "8");
+
+        let j = serde_json::to_string(&Untagged::B).unwrap();
+        assert_eq!(j, "4");
+
+        let j = serde_json::to_string(&Untagged::Other(25)).unwrap();
+        assert_eq!(j, "25");
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let p: Untagged = serde_json::from_str("4").unwrap();
+        assert_eq!(p, Untagged::B);
+
+        let p: Untagged = serde_json::from_str("5").unwrap();
+        assert_eq!(p, Untagged::Other(5));
+    }
+}
