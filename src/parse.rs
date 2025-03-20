@@ -1,6 +1,6 @@
 use proc_macro2::{Span, TokenStream, TokenTree};
 use syn::parse::{Error, Parse, ParseStream, Result};
-use syn::{parenthesized, token, Attribute, Data, DeriveInput, Expr, Fields, Ident, Meta, Token};
+use syn::{Attribute, Data, DeriveInput, Expr, Fields, Ident, Meta, Token, parenthesized, token};
 
 pub struct Input {
     pub ident: Ident,
@@ -13,11 +13,13 @@ pub struct Input {
 pub struct Variant {
     pub ident: Ident,
     pub attrs: VariantAttrs,
+    pub discriminant: Option<(Token![=], Expr)>,
 }
 
 #[derive(Clone)]
 pub struct VariantAttrs {
     pub is_default: bool,
+    pub is_untagged: bool,
 }
 
 fn parse_serde_attr(attrs: &mut VariantAttrs, attr: &Attribute) {
@@ -29,6 +31,8 @@ fn parse_serde_attr(attrs: &mut VariantAttrs, attr: &Attribute) {
                 let _group: TokenTree = meta.input.parse()?;
             } else if meta.path.is_ident("other") {
                 attrs.is_default = true;
+            } else if meta.path.is_ident("untagged") {
+                attrs.is_untagged = true;
             }
             Ok(())
         });
@@ -36,7 +40,10 @@ fn parse_serde_attr(attrs: &mut VariantAttrs, attr: &Attribute) {
 }
 
 fn parse_attrs(variant: &syn::Variant) -> VariantAttrs {
-    let mut attrs = VariantAttrs { is_default: false };
+    let mut attrs = VariantAttrs {
+        is_default: false,
+        is_untagged: false,
+    };
     for attr in &variant.attrs {
         if attr.path().is_ident("serde") {
             parse_serde_attr(&mut attrs, attr);
@@ -65,13 +72,25 @@ impl Parse for Input {
                     let attrs = parse_attrs(&variant);
                     Ok(Variant {
                         ident: variant.ident,
+                        discriminant: variant.discriminant,
                         attrs,
                     })
                 }
-                Fields::Named(_) | Fields::Unnamed(_) => Err(Error::new(
-                    variant.ident.span(),
-                    "must be a unit variant to use serde_repr derive",
-                )),
+                Fields::Named(_) | Fields::Unnamed(_) => {
+                    let attrs = parse_attrs(&variant);
+                    if attrs.is_untagged {
+                        Ok(Variant {
+                            ident: variant.ident,
+                            discriminant: variant.discriminant,
+                            attrs,
+                        })
+                    } else {
+                        Err(Error::new(
+                            variant.ident.span(),
+                            "must be a unit variant or be tagged with #[serde(untagged)] to use serde_repr derive",
+                        ))
+                    }
+                }
             })
             .collect::<Result<Vec<Variant>>>()?;
 
@@ -112,12 +131,15 @@ impl Parse for Input {
         }
         let repr = repr.ok_or_else(|| Error::new(call_site, "missing #[repr(...)] attribute"))?;
 
-        let mut default_variants = variants.iter().filter(|x| x.attrs.is_default);
+        let mut default_variants = variants
+            .iter()
+            .filter(|x| x.attrs.is_default || x.attrs.is_untagged);
+
         let default_variant = default_variants.next().cloned();
         if default_variants.next().is_some() {
             return Err(Error::new(
                 call_site,
-                "only one variant can be #[serde(other)]",
+                "only one variant can be #[serde(other)] or #[serde(untagged)]",
             ));
         }
 
