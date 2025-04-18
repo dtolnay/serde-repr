@@ -34,7 +34,7 @@
 //! }
 //! ```
 
-#![doc(html_root_url = "https://docs.rs/serde_repr/0.1.20")]
+#![doc(html_root_url = "https://docs.rs/serde_repr/0.2.0")]
 #![allow(clippy::single_match_else)]
 
 extern crate proc_macro;
@@ -47,9 +47,7 @@ use syn::parse_macro_input;
 
 use crate::parse::Input;
 
-#[proc_macro_derive(Serialize_repr)]
-pub fn derive_serialize(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as Input);
+fn expand_serialize(input: Input) -> TokenStream {
     let ident = input.ident;
     let repr = input.repr;
 
@@ -77,9 +75,7 @@ pub fn derive_serialize(input: TokenStream) -> TokenStream {
     })
 }
 
-#[proc_macro_derive(Deserialize_repr, attributes(serde))]
-pub fn derive_deserialize(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as Input);
+fn expand_deserialize(input: Input) -> TokenStream {
     let ident = input.ident;
     let repr = input.repr;
     let variants = input.variants.iter().map(|variant| &variant.ident);
@@ -141,4 +137,34 @@ pub fn derive_deserialize(input: TokenStream) -> TokenStream {
             }
         }
     })
+}
+
+#[proc_macro_derive(SerializeRepr)]
+pub fn derive_serialize(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as Input);
+
+    expand_serialize(input)
+}
+
+#[proc_macro_derive(DeserializeRepr, attributes(serde))]
+pub fn derive_deserialize(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as Input);
+    
+    expand_deserialize(input)
+}
+
+#[deprecated]
+#[proc_macro_derive(Serialize_repr)]
+pub fn derive_serialize_legacy(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as Input);
+
+    expand_serialize(input)
+}
+
+#[deprecated]
+#[proc_macro_derive(Deserialize_repr, attributes(serde))]
+pub fn derive_deserialize_legacy(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as Input);
+    
+    expand_deserialize(input)
 }
