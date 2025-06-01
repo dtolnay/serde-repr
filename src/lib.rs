@@ -47,19 +47,69 @@ use syn::parse_macro_input;
 
 use crate::parse::Input;
 
+fn build_numerics_enum(
+    ident: &syn::Ident,
+    variants: &[parse::Variant],
+) -> proc_macro2::TokenStream {
+    let fields = variants.iter().map(|variant| {
+        let variant_ident = &variant.ident;
+        if variant.attrs.is_untagged {
+            quote! {}
+        } else {
+            if let Some(discriminant) = &variant.discriminant {
+                let expr = &discriminant.1;
+                quote! {
+                    #variant_ident = #expr,
+                }
+            } else {
+                quote! {
+                    #variant_ident,
+                }
+            }
+        }
+    });
+    quote!(
+        #[allow(non_camel_case_types)]
+        enum #ident {
+            #( #fields )*
+        }
+    )
+}
+
 #[proc_macro_derive(Serialize_repr)]
 pub fn derive_serialize(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as Input);
     let ident = input.ident;
     let repr = input.repr;
 
+    let has_untagged_variant = input
+        .default_variant
+        .as_ref()
+        .map_or(false, |v| v.attrs.is_untagged);
+
+    let numeric_ident = if has_untagged_variant {
+        syn::Ident::new(&format!("NumericOnly{}", ident.to_string()), ident.span())
+    } else {
+        ident.clone()
+    };
+    let numerics_only = if has_untagged_variant {
+        build_numerics_enum(&numeric_ident, &input.variants)
+    } else {
+        quote! {}
+    };
+
     let match_variants = input.variants.iter().map(|variant| {
-        let variant = &variant.ident;
-        quote! {
-            #ident::#variant => #ident::#variant as #repr,
+        let variant_ident = &variant.ident;
+        if variant.attrs.is_untagged {
+            quote! {
+                #ident::#variant_ident(inner) => inner as #repr,
+            }
+        } else {
+            quote! {
+                #ident::#variant_ident => #numeric_ident::#variant_ident as #repr,
+            }
         }
     });
-
     TokenStream::from(quote! {
         #[allow(deprecated)]
         impl serde::Serialize for #ident {
@@ -68,6 +118,8 @@ pub fn derive_serialize(input: TokenStream) -> TokenStream {
             where
                 S: serde::Serializer
             {
+                #numerics_only
+
                 let value: #repr = match *self {
                     #(#match_variants)*
                 };
@@ -84,17 +136,41 @@ pub fn derive_deserialize(input: TokenStream) -> TokenStream {
     let repr = input.repr;
     let variants = input.variants.iter().map(|variant| &variant.ident);
 
+    let has_untagged_variant = input
+        .default_variant
+        .as_ref()
+        .map_or(false, |v| v.attrs.is_untagged);
+
+    let numeric_ident = if has_untagged_variant {
+        syn::Ident::new(&format!("NumericOnly{}", ident.to_string()), ident.span())
+    } else {
+        ident.clone()
+    };
+    let numerics_only_enum = if has_untagged_variant {
+        build_numerics_enum(&numeric_ident, &input.variants)
+    } else {
+        quote! {}
+    };
+
     let declare_discriminants = input.variants.iter().map(|variant| {
-        let variant = &variant.ident;
-        quote! {
-            const #variant: #repr = #ident::#variant as #repr;
+        let variant_ident = &variant.ident;
+        if variant.attrs.is_untagged {
+            quote! {}
+        } else {
+            quote! {
+                const #variant_ident: #repr = #numeric_ident::#variant_ident as #repr;
+            }
         }
     });
 
     let match_discriminants = input.variants.iter().map(|variant| {
-        let variant = &variant.ident;
-        quote! {
-            discriminant::#variant => ::core::result::Result::Ok(#ident::#variant),
+        let variant_ident = &variant.ident;
+        if variant.attrs.is_untagged {
+            quote! {}
+        } else {
+            quote! {
+                discriminant::#variant_ident => ::core::result::Result::Ok(#ident::#variant_ident),
+            }
         }
     });
 
@@ -106,9 +182,19 @@ pub fn derive_deserialize(input: TokenStream) -> TokenStream {
 
     let other_arm = match input.default_variant {
         Some(variant) => {
-            let variant = &variant.ident;
-            quote! {
-                ::core::result::Result::Ok(#ident::#variant)
+            if variant.attrs.is_default {
+                let variant = &variant.ident;
+                quote! {
+                    ::core::result::Result::Ok(#ident::#variant)
+                }
+            } else if variant.attrs.is_untagged {
+                quote! {
+                    ::core::result::Result::Ok(#ident::Other(other))
+                }
+            } else {
+                quote! {
+                    This Should Never Happen!
+                }
             }
         }
         None => quote! {
@@ -126,6 +212,8 @@ pub fn derive_deserialize(input: TokenStream) -> TokenStream {
             where
                 D: serde::Deserializer<'de>,
             {
+                #numerics_only_enum
+
                 #[allow(non_camel_case_types)]
                 struct discriminant;
 
