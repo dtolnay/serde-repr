@@ -9,7 +9,7 @@ edition = "2021"
 keywords = ["serde", "serialization", "integer"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/dtolnay/serde-repr"
-rust-version = "1.56"
+rust-version = "1.61"
 
 [lib]
 proc-macro = true
