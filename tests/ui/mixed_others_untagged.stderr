@@ -1,0 +1,7 @@
+error: only one variant can be #[serde(other)] or #[serde(untagged)]
+ --> tests/ui/mixed_others_untagged.rs:3:10
+  |
+3 | #[derive(Deserialize_repr)]
+  |          ^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the derive macro `Deserialize_repr` (in Nightly builds, run with -Z macro-backtrace for more info)

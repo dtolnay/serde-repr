@@ -1,4 +1,4 @@
-error: only one variant can be #[serde(other)]
+error: only one variant can be #[serde(other)] or #[serde(untagged)]
  --> tests/ui/multiple_others.rs:3:10
   |
 3 | #[derive(Deserialize_repr)]
